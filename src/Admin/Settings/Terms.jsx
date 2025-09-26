@@ -1,43 +1,190 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import {
+  Bold,
+  Italic,
+  Underline,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+} from "lucide-react";
+import authApiInstance from "../../utils/privateApiInstance"; // adjust path
+import { toast } from "react-toastify";
+
 export default function Terms() {
+  const [terms, setTerms] = useState(""); // fetched/saved content
+  const [isEditing, setIsEditing] = useState(false);
+  const [fontSize, setFontSize] = useState("12");
+  const [loading, setLoading] = useState(false);
+  const contentRef = useRef(null);
+
+  // Fetch terms on mount
+  useEffect(() => {
+    const fetchTerms = async () => {
+      try {
+        setLoading(true);
+        const res = await authApiInstance.get("/terms-and-conditions/");
+        setTerms(res.data.content || "");
+      } catch (error) {
+        console.error("Failed to fetch terms:", error);
+        toast.error("Failed to fetch terms");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTerms();
+  }, []);
+
+  const handleEditToggle = () => {
+    if (isEditing) handleSave(); // save on toggle off
+    setIsEditing(!isEditing);
+  };
+
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      await authApiInstance.patch("/terms-and-conditions/", {
+        content: terms,
+      });
+      toast.success("Terms updated successfully!");
+    } catch (error) {
+      console.error("Failed to save terms:", error);
+      toast.error("Failed to save terms");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const applyFormat = (command, value = null) => {
+    if (contentRef.current && isEditing) {
+      document.execCommand(command, false, value);
+      contentRef.current.focus();
+    }
+  };
+
+  // Font-size apply function
+  const applyFontSize = (size) => {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+
+    const range = selection.getRangeAt(0);
+    const wrapper = document.createElement("span");
+    wrapper.style.fontSize = `${size}px`;
+
+    try {
+      range.surroundContents(wrapper);
+    } catch (err) {
+      // multiple nodes selection issue
+      document.execCommand("fontSize", false, "7"); // temporary largest size
+      const fontElements = document.getElementsByTagName("font");
+      for (let i = 0; i < fontElements.length; i++) {
+        if (fontElements[i].size === "7") {
+          fontElements[i].removeAttribute("size");
+          fontElements[i].style.fontSize = `${size}px`;
+        }
+      }
+    }
+  };
+
+  const handleFontSizeChange = (e) => {
+    const newSize = e.target.value;
+    setFontSize(newSize);
+    applyFontSize(newSize);
+  };
+
   return (
     <div className="flex flex-col gap-6 text-[#2e2e2e]">
-      <div>
-        <h1 className="font-medium text-base">
-          1. Terms & Conditions Management
-        </h1>
-        <p className="text-xs">
-          Purpose: Allow the admin to create, edit, and publish the Terms &
-          Conditions for the AI food recipe generator app without editing the
-          source code
-        </p>
+      <div className="flex items-center justify-between">
+        <h1 className="font-medium text-base">Terms & Conditions Management</h1>
+        <button
+          onClick={handleEditToggle}
+          className="bg-[#E4572E] text-white text-base font-medium px-4 py-2 rounded hover:bg-orange-600 disabled:opacity-50 w-40"
+          disabled={loading}
+        >
+          {loading ? "Saving..." : isEditing ? "Save" : "Edit"}
+        </button>
       </div>
-      <div>
-        <h1 className="font-medium text-sm">Features:</h1>
-        <ul className="text-xs list-disc list-inside flex flex-col gap-3">
-          <li>
-            <span className="font-medium">Rich Text Editor:</span> Supports
-            headings, bullet points, numbered lists, links, and formatting for
-            easy structuring of legal text.
-          </li>
-          <li>
-            <span className="font-medium">Preview Mode:</span> Admin can preview
-            exactly how the Terms & Conditions will appear to users before
-            publishing.
-          </li>
-        </ul>
-      </div>
-      <div>
-        <h1 className="font-medium text-sm">Version Control:</h1>
-        <ul className="text-xs list-disc list-inside flex flex-col gap-3">
-          <li>Stores the date and time of each update.</li>
-          <li>Allows reverting to any previous version.</li>
-        </ul>
-      </div>
-      <p className="text-xs">
-        <span className="font-medium">Publish Button:</span> Instantly updates
-        the Terms & Conditions on the live site.
-      </p>
+
+      {/* Toolbar */}
+      {isEditing && (
+        <div className="flex items-center gap-2 p-2 border border-gray-300 rounded bg-gray-50">
+          <select
+            value={fontSize}
+            onChange={handleFontSizeChange}
+            className="px-2 py-1 border border-gray-300 rounded text-sm"
+          >
+            {[10, 12, 14, 16, 18, 20, 24].map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </select>
+
+          <button
+            onClick={() => applyFormat("bold")}
+            title="Bold"
+            className="p-1 hover:bg-gray-200 rounded"
+          >
+            <Bold size={16} />
+          </button>
+          <button
+            onClick={() => applyFormat("italic")}
+            title="Italic"
+            className="p-1 hover:bg-gray-200 rounded"
+          >
+            <Italic size={16} />
+          </button>
+          <button
+            onClick={() => applyFormat("underline")}
+            title="Underline"
+            className="p-1 hover:bg-gray-200 rounded"
+          >
+            <Underline size={16} />
+          </button>
+
+          <button
+            onClick={() => applyFormat("justifyLeft")}
+            title="Align Left"
+            className="p-1 hover:bg-gray-200 rounded"
+          >
+            <AlignLeft size={16} />
+          </button>
+          <button
+            onClick={() => applyFormat("justifyCenter")}
+            title="Align Center"
+            className="p-1 hover:bg-gray-200 rounded"
+          >
+            <AlignCenter size={16} />
+          </button>
+          <button
+            onClick={() => applyFormat("justifyRight")}
+            title="Align Right"
+            className="p-1 hover:bg-gray-200 rounded"
+          >
+            <AlignRight size={16} />
+          </button>
+        </div>
+      )}
+
+      {/* Content editor */}
+      {isEditing ? (
+        <div
+          ref={contentRef}
+          contentEditable
+          suppressContentEditableWarning
+          className="w-full min-h-screen p-4 border border-gray-300 rounded text-xs resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 overflow-auto"
+          style={{ fontSize: `${fontSize}px` }} // Editing mode font size
+          dangerouslySetInnerHTML={{ __html: terms }}
+          onBlur={(e) => setTerms(e.currentTarget.innerHTML)}
+        />
+      ) : (
+        <div
+          className="max-w-6xl min-h-screen rounded text-base resize-none overflow-auto"
+          dangerouslySetInnerHTML={{ __html: terms }} // font size preserved via inline <span>
+        />
+      )}
     </div>
   );
 }
-
