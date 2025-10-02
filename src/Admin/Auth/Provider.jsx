@@ -1,5 +1,6 @@
 import { createContext, useEffect, useState } from "react";
 import publicApiInstance from "../../utils/publicApiInstance";
+import { toast } from "react-toastify";
 
 export const MyContext = createContext();
 
@@ -8,7 +9,6 @@ export const MyProvider = ({ children }) => {
   const [loading, setLoading] = useState(true); // Track loading state
   const [error, setError] = useState(null);
 
-  // ✅ User login
   const login = async ({ email, password }) => {
     setLoading(true);
     setError(null);
@@ -25,11 +25,14 @@ export const MyProvider = ({ children }) => {
         localStorage.setItem("user", JSON.stringify(data?.user));
         localStorage.setItem("admin", data?.admin);
         setUser(data?.user);
+        toast.success("Login successful!");
       } else {
         setError("Login failed. Please check your credentials.");
+        toast.error("Login failed. Please check your credentials.");
       }
     } catch (error) {
       setError("An error occurred during login. Please try again.");
+      toast.error("An error occurred during login. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -69,9 +72,9 @@ export const MyProvider = ({ children }) => {
   useEffect(() => {
     const loggedInUser = localStorage.getItem("user");
     if (loggedInUser) {
-      setUser(JSON.parse(loggedInUser)); // Initialize user from localStorage
+      setUser(JSON.parse(loggedInUser));
     }
-    setLoading(false); // Set loading to false after checking
+    setLoading(false);
   }, []);
 
   return (

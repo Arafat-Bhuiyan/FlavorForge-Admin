@@ -29,15 +29,7 @@ export default function AdminLogin() {
       return;
     }
 
-    // if (!passwordRegex.test(password)) {
-    //   setError(
-    //     "Password must be at least 8 characters, include one uppercase letter and one number"
-    //   );
-    //   return;
-    // }
-
     setError("");
-    toast.success("Login successful");
 
     login({
       name: "Admin",

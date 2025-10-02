@@ -126,7 +126,7 @@ export const Sidebar = ({ currentComponent, onMenuClick }) => {
       {/* Logo */}
       <div className="p-6">
         <img
-          src="/public/FlavorForgeLogo.png"
+          src="https://i.ibb.co.com/1tLQCVpw/Flavor-Forge-Logo.png"
           className="w-[93px] h-[71px] mx-auto"
           alt=""
         />
