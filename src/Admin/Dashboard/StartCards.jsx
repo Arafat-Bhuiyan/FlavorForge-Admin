@@ -1,10 +1,32 @@
 import userRedIcon from "../../assets/images/user-red-icon.png";
-import growRedIcon from "../../assets/images/grow-red-icon.png";
 import RevenueChart from "./RevenueChart";
 import RecentUsers from "./RecentUsers";
-import TopIngredients from "./TopIngredients";
+import authApiInstance from "../../utils/privateApiInstance";
+import { useEffect, useState } from "react";
 
 export const StartCards = () => {
+  const [dashboardData, setDashboardData] = useState({
+    total_user: 0,
+    active_subscription: 0,
+    ai_usages: 0,
+    chart: [],
+  });
+
+  // Fetch data from API on mount
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const res = await authApiInstance.get("/api/dashboard/");
+        if (res.status === 200) {
+          setDashboardData(res.data);
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
   return (
     <div className="col-span-8">
       <div className="grid grid-cols-3 gap-6 mb-6">
@@ -12,40 +34,34 @@ export const StartCards = () => {
         <div className="flex items-center  gap-5 py-6 px-10 bg-[#FFFDFD] border border-[#E4572E] rounded-xl shadow-lg">
           <img src={userRedIcon} className="w-16 h-16" alt="" />
           <div className="flex flex-col gap-3">
-            <p className="text-[#2E2E2E] font-semibold text-5xl">345</p>
+            <p className="text-[#2E2E2E] font-semibold text-5xl">
+              {dashboardData.total_user}
+            </p>
             <p className="text-[#2E2E2E] font-normal text-xl">Total Users</p>
-            <div className="flex items-center gap-1">
-              <img src={growRedIcon} alt="" />
-              <p className="text-[#A3A3A3] font-normal text-xs">4% (30 days)</p>
-            </div>
           </div>
         </div>
         {/* Active Subscription */}
         <div className="flex items-center  gap-5 py-6 px-10 bg-[#FFFDFD] border border-[#E4572E] rounded-xl shadow-lg">
           <img src={userRedIcon} className="w-16 h-16" alt="" />
           <div className="flex flex-col gap-3">
-            <p className="text-[#2E2E2E] font-semibold text-5xl">245</p>
+            <p className="text-[#2E2E2E] font-semibold text-5xl">
+              {dashboardData.active_subscription}
+            </p>
             <p className="text-[#2E2E2E] font-normal text-xl">
               Active Subscription
             </p>
-            <div className="flex items-center gap-1">
-              <img src={growRedIcon} alt="" />
-              <p className="text-[#A3A3A3] font-normal text-xs">4% (20 days)</p>
-            </div>
           </div>
         </div>
         {/* Users */}
         <div className="flex items-center  gap-5 py-6 px-10 bg-[#FFFDFD] border border-[#E4572E] rounded-xl shadow-lg">
           <img src={userRedIcon} className="w-16 h-16" alt="" />
           <div className="flex flex-col gap-3">
-            <p className="text-[#2E2E2E] font-semibold text-5xl">1250</p>
+            <p className="text-[#2E2E2E] font-semibold text-5xl">
+              {dashboardData.ai_usages}
+            </p>
             <p className="text-[#2E2E2E] font-normal text-xl">
               AI Requests Today
             </p>
-            <div className="flex items-center gap-1">
-              <img src={growRedIcon} alt="" />
-              <p className="text-[#A3A3A3] font-normal text-xs">4% (25 days)</p>
-            </div>
           </div>
         </div>
       </div>
